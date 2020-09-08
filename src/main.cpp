@@ -1,10 +1,10 @@
 #include "lexer.hpp"
-#include "token.hpp"
+#include "ast.hpp"
+#include "astprinter.hpp"
+#include "emitter.hpp"
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <vector>
 
 std::string consume(const std::string& path) {
 	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
@@ -29,5 +29,18 @@ int main() {
 	auto src = consume("../examples/specs/person.scvspec");
 	Lexer lexer(src);
 	auto tokens = lexer();
-	dumpTokens(tokens);
+	//dumpTokens(tokens);
+	Parser parser(tokens);
+	auto root = parser();
+	if(root) {
+		//AstPrinter printer;
+		//printer.print(*root);
+
+		Emitter emitter(*root, "person.hpp");
+		bool result = emitter();
+		return result ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else {
+		std::cerr << "null :(\n";
+		// TODO: This is an error
+	}
 }
