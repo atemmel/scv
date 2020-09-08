@@ -9,31 +9,35 @@
 class AstVisitor;
 
 struct AstNode {
+	AstNode(const Token* token);
 	using Ptr = std::unique_ptr<AstNode>;
 
 	virtual ~AstNode() = default;
 	virtual void accept(AstVisitor& visitor) = 0;
 	void addChild(Ptr child);
 	std::vector<Ptr> children;
+	const Token* origin;
 };
 
 struct RootAstNode : public AstNode {
 	using Ptr = std::unique_ptr<RootAstNode>;
 
+	RootAstNode();
 	void accept(AstVisitor& visitor) final;
 };
 
 struct StructAstNode : public AstNode {
-	StructAstNode(const std::string& str);
+	StructAstNode(const Token* token);
 	void accept(AstVisitor& visitor) final;
 	std::string name;
 };
 
 struct MemberAstNode : public AstNode {
-	MemberAstNode(const std::string& type, const std::string& name);
+	MemberAstNode(const Token* type, const Token* name);
 	void accept(AstVisitor& visitor) final;
 	std::string type;
 	std::string name;
+	const Token* nameToken;
 };
 
 class AstVisitor {

@@ -1,8 +1,9 @@
 #include "emitter.hpp"
 
+#include "error.hpp"
+
 #include <chrono>
 #include <fstream>
-#include <iostream>
 
 Emitter::Emitter(const RootAstNode& root, const std::string& path) : root(root), path(path), types(
 {
@@ -60,6 +61,7 @@ bool Emitter::operator()() {
 
 	std::ofstream file(path.c_str());
 	if(!file.is_open()) {
+		error::set("Cannot open file '" + path + '\'');
 		return false;
 	}
 
@@ -81,6 +83,7 @@ void Emitter::visit(const StructAstNode& node) {
 		output.append(";\n");
 		auto shouldBeNull = findType(node.name);
 		if(shouldBeNull != nullptr) {
+			error::onToken("Type '" + node.name + "' already defined", *node.origin);
 			errorOccured = true;
 			return;
 		} else {
@@ -100,6 +103,7 @@ void Emitter::visit(const StructAstNode& node) {
 void Emitter::visit(const MemberAstNode& node) {
 	auto type = findType(node.type);
 	if(!type) {
+		error::onToken("Type '" + node.type + "' not defined", *node.origin);
 		errorOccured = true;
 		return;
 	}
@@ -108,6 +112,7 @@ void Emitter::visit(const MemberAstNode& node) {
 	output.push_back(' ');
 	auto name = findType(node.name);
 	if(name) {
+		error::onToken("Cannot name a member '" + node.name + "'", *node.nameToken);
 		errorOccured = true;
 		return;
 	}
@@ -144,6 +149,5 @@ std::string Emitter::getDate() {
 	str.resize(6 + 2 + 2 + 2 + 2 + 2 + 6);
 	int n = std::strftime(str.data(), str.size(), "%F %T", local);
 	str.resize(n);
-	//std::free(local);
 	return str;
 }

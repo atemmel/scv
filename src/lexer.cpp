@@ -1,10 +1,11 @@
 #include "lexer.hpp"
 
+#include "error.hpp"
+
 #include <algorithm>
 #include <iostream>
 
-Lexer::Lexer(const std::string& src) : src(src) {
-}
+Lexer::Lexer(const std::string& src) : src(src) {}
 
 std::vector<Token> Lexer::operator()() {
 	current = 0;
@@ -63,8 +64,11 @@ std::vector<Token> Lexer::operator()() {
 				tokens.push_back(token);
 				next();
 			} else {
-				std::cerr << "Bad token\n";
-				std::exit(EXIT_FAILURE);
+				std::string buffer;
+				buffer.resize(128);
+				std::snprintf(buffer.data(), buffer.size(), "%d:%d: Unrecognized token '%c'\n", row, column, peek());
+				error::set(buffer);
+				return {};
 			}
 		}
 	}

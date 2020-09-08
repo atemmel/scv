@@ -1,22 +1,26 @@
 #include "ast.hpp"
 
-#include <iostream>
+#include "error.hpp"
+
+AstNode::AstNode(const Token* token) : origin(token) {}
 
 void AstNode::addChild(AstNode::Ptr child) {
 	children.push_back(std::move(child));
 }
 
+RootAstNode::RootAstNode() : AstNode(nullptr) {}
+
 void RootAstNode::accept(AstVisitor& visitor) {
 	visitor.visit(*this);
 }
 
-StructAstNode::StructAstNode(const std::string& name) : name(name) {}
+StructAstNode::StructAstNode(const Token* token) : name(token->value), AstNode(token) {}
 
 void StructAstNode::accept(AstVisitor& visitor) {
 	visitor.visit(*this);
 }
 
-MemberAstNode::MemberAstNode(const std::string& type, const std::string& name) : type(type), name(name) {}
+MemberAstNode::MemberAstNode(const Token* type, const Token* name) : type(type->value), name(name->value), AstNode(type), nameToken(name) {}
 
 void MemberAstNode::accept(AstVisitor& visitor) {
 	visitor.visit(*this);
@@ -33,7 +37,7 @@ RootAstNode::Ptr Parser::operator()() {
 		if(auto child = buildStruct(); child) {
 			root->addChild(std::move(child));
 		} else {
-			// TODO: This is an error
+			// Let error bubble up
 			return nullptr;
 		}
 	}
@@ -48,24 +52,27 @@ AstNode::Ptr Parser::buildStruct() {
 
 	const Token* name = getIf(TokenType::Identifier);
 	if(!name) {
-		// TODO: This is an error
+		error::onToken("Expected identifier", tokens[current]);
 		return nullptr;
 	}
 	
 	if(!getIf(TokenType::LBrace)) {
-		// TODO: This is an error
+		error::onToken("Expected '{'", tokens[current]);
 		return nullptr;
 	}
 
-	auto struc = std::make_unique<StructAstNode>(name->value);
+	auto struc = std::make_unique<StructAstNode>(name);
 
 	while(!getIf(TokenType::RBrace) ) {
 		auto member = buildMember();
 		if(!member) {
-			// TODO: This is an error
+			// Let error bubble up
 			return nullptr;
 		}
 		struc->addChild(std::move(member));
+		if(current >= last) {
+			error::onToken("Expected '}'", tokens[current]);
+		}
 	}
 
 	return struc;
@@ -74,17 +81,17 @@ AstNode::Ptr Parser::buildStruct() {
 AstNode::Ptr Parser::buildMember() {
 	const Token* type = getIf(TokenType::Identifier);
 	if(type == nullptr) {
-		// TODO: This is an error
+		error::onToken("Expected identifier", tokens[current]);
 		return nullptr;
 	}
 
 	const Token* name = getIf(TokenType::Identifier);
 	if(name == nullptr) {
-		// TODO: This is an error
+		error::onToken("Expected identifier", tokens[current]);
 		return nullptr;
 	}
 
-	return std::make_unique<MemberAstNode>(type->value, name->value);
+	return std::make_unique<MemberAstNode>(type, name);
 }
 
 
