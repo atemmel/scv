@@ -1,0 +1,13 @@
+struct User {
+	int age
+	string username
+	string desc
+	string id
+	Date date
+}
+
+struct Date {
+	u8 d
+	u8 m
+	u32 y
+}
