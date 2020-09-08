@@ -9,6 +9,8 @@
 
 void pipeline(const std::string_view& sv) {
 	auto src = consume(sv.data());
+	dieIfError();
+
 	Lexer lexer(src);
 	auto tokens = lexer();
 	dieIfError();

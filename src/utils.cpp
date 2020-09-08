@@ -8,6 +8,10 @@
 
 std::string consume(const char* path) {
 	std::ifstream file(path, std::ios::in | std::ios::binary | std::ios::ate);
+	if(!file.is_open()) {
+		error::set(std::string("Could not open file: ") + path + '\n');
+		return std::string();
+	}
 	auto size = file.tellg();
 	file.seekg(0, std::ios::beg);
 	if(size < 1) {
