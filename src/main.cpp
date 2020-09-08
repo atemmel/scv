@@ -12,26 +12,30 @@ void pipeline(const std::string_view& sv) {
 	Lexer lexer(src);
 	auto tokens = lexer();
 	dieIfError();
+
 	if(global::verboseAllFlag || global::verboseTokenizationFlag) {
 		dumpTokens(tokens);
 	}
+
 	Parser parser(tokens);
 	auto root = parser();
 	dieIfError();
-	if(root) {
-		if(global::verboseAllFlag || global::verboseAstFlag) {
-			AstPrinter printer;
-			printer.print(*root);
-		}
-
-		auto file = getFile(sv);
-		file = setStub(file, "hpp");
-		auto path = joinPaths(global::outputPath, file);
-
-		Emitter emitter(*root, path);
-		emitter();
-		dieIfError();
+	if(!root) {
+		return;
 	}
+
+	if(global::verboseAllFlag || global::verboseAstFlag) {
+		AstPrinter printer;
+		printer.print(*root);
+	}
+
+	auto file = getFile(sv);
+	file = setStub(file, "hpp");
+	auto path = joinPaths(global::outputPath, file);
+
+	Emitter emitter(*root, path);
+	emitter();
+	dieIfError();
 }
 
 int main(int argc, char** argv) {
