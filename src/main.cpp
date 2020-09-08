@@ -1,54 +1,51 @@
+#include "argparser.hpp"
+#include "global.hpp"
 #include "lexer.hpp"
 #include "ast.hpp"
 #include "astprinter.hpp"
 #include "emitter.hpp"
 #include "error.hpp"
+#include "utils.hpp"
 
-#include <fstream>
-#include <iostream>
-
-std::string consume(const std::string& path) {
-	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-	auto size = file.tellg();
-	file.seekg(0, std::ios::beg);
-	if(size < 1) {
-		return std::string();
-	}
-	std::vector<char> bytes(size);
-	file.read(bytes.data(), size);
-	return std::string(bytes.data(), size);
-}
-
-void dumpTokens(const std::vector<Token>& tokens) {
-	for(auto& t : tokens) {
-		size_t index = static_cast<size_t>(t.type);
-		std::cout << t.row << ":" << t.column << ": type: "<< tokenStrings[index] << " value: " << t.value << '\n';
-	}
-}
-
-void dieIfError() {
-	if(!error::empty()) {
-		std::cerr << error::get();
-		std::exit(EXIT_FAILURE);
-	}
-}
-
-int main() {
-	auto src = consume("../examples/specs/person.scvspec");
+void pipeline(const std::string_view& sv) {
+	auto src = consume(sv.data());
 	Lexer lexer(src);
 	auto tokens = lexer();
 	dieIfError();
-	//dumpTokens(tokens);
+	if(global::verboseAllFlag || global::verboseTokenizationFlag) {
+		dumpTokens(tokens);
+	}
 	Parser parser(tokens);
 	auto root = parser();
 	dieIfError();
 	if(root) {
-		//AstPrinter printer;
-		//printer.print(*root);
+		if(global::verboseAllFlag || global::verboseAstFlag) {
+			AstPrinter printer;
+			printer.print(*root);
+		}
 
-		Emitter emitter(*root, "person.hpp");
+		auto file = getFile(sv);
+		file = setStub(file, "hpp");
+		auto path = joinPaths(global::outputPath, file);
+
+		Emitter emitter(*root, path);
 		emitter();
 		dieIfError();
 	}
+}
+
+int main(int argc, char** argv) {
+	ArgParser argParser(argc, argv);
+	argParser.addBool(&global::verboseAllFlag, "--verbose");
+	argParser.addBool(&global::verboseTokenizationFlag, "--verbose-tokenization");
+	argParser.addBool(&global::verboseAstFlag, "--verbose-ast");
+	argParser.addString(&global::outputPath, "--output");
+
+	auto input = argParser.unwind();
+
+	for(const auto sv : input) {
+		pipeline(sv);
+	}
+
 	return EXIT_SUCCESS;
 }

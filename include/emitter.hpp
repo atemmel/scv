@@ -18,7 +18,6 @@ private:
 	void rise();
 	void pad();
 	const std::string* findType(const std::string& str);
-	std::string getDate();
 
 	std::unordered_map<std::string, std::string> types;
 	std::string output;

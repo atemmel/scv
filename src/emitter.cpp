@@ -1,8 +1,8 @@
 #include "emitter.hpp"
 
 #include "error.hpp"
+#include "utils.hpp"
 
-#include <chrono>
 #include <fstream>
 
 Emitter::Emitter(const RootAstNode& root, const std::string& path) : root(root), path(path), types(
@@ -61,7 +61,7 @@ bool Emitter::operator()() {
 
 	std::ofstream file(path.c_str());
 	if(!file.is_open()) {
-		error::set("Cannot open file '" + path + '\'');
+		error::set("Cannot open file '" + path + "'\n");
 		return false;
 	}
 
@@ -140,14 +140,4 @@ const std::string* Emitter::findType(const std::string& str) {
 		return nullptr;
 	}
 	return &it->second;
-}
-
-std::string Emitter::getDate() {
-	auto result = std::time(nullptr);
-	auto local = std::localtime(&result);
-	std::string str;
-	str.resize(6 + 2 + 2 + 2 + 2 + 2 + 6);
-	int n = std::strftime(str.data(), str.size(), "%F %T", local);
-	str.resize(n);
-	return str;
 }
