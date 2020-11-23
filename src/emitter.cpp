@@ -86,6 +86,7 @@ bool Emitter::operator()() {
 
 void Emitter::visit(const RootAstNode& node) {
 	for(auto ptr : node.structs) {
+		activeStruct = &ptr->name;
 		visit(*ptr);
 	}
 }
@@ -106,7 +107,6 @@ void Emitter::visit(const StructAstNode& node) {
 		}
 		dependencies.insert({node.name, std::move(collectedDependencies)});
 	} else {
-		int index = currentIndex;
 		if(emitted[node.name]) {
 			return;
 		}
@@ -114,6 +114,11 @@ void Emitter::visit(const StructAstNode& node) {
 		auto deps = dependencies[node.name];
 		for(const auto& dep : deps) {
 			auto stru = findStruct(dep);
+			if(stru->name == *activeStruct) {
+				error::onToken("Cyclic dependency detected inside struct", *node.origin);
+				errorOccured = true;
+				return;
+			}
 			visit(*stru);
 		}
 
@@ -136,6 +141,7 @@ void Emitter::visit(const MemberAstNode& node) {
 		if(type == nullptr) {
 			collectedDependencies.push_back(node.type);
 		}
+
 		return;
 	} else {
 		auto type = findType(node.type);

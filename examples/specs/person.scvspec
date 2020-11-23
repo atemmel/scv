@@ -12,4 +12,5 @@ struct Date {
 	u8 d
 	u8 m
 	u32 y
+	User user
 }

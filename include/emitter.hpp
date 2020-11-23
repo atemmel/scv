@@ -28,8 +28,8 @@ private:
 	std::string output;
 	const RootAstNode& root;
 	const std::string& path;
+	const std::string* activeStruct;
 	uint32_t depth;
-	size_t currentIndex = 0;
 	bool mappingTypes = false;
 	bool mappingDeps = false;
 	bool errorOccured = false;
