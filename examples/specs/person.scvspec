@@ -1,5 +1,5 @@
 // User type
-struct User {
+struct User is trait1, trait2 {
 	int age
 	string username
 	string desc

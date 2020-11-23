@@ -35,6 +35,8 @@ RootAstNode::Ptr Parser::operator()() {
 
 	while(current < last) {
 		if(auto child = buildStruct(); child) {
+			auto ptr = static_cast<StructAstNode*>(child.get());
+			root->structs.push_back(ptr);
 			root->addChild(std::move(child));
 		} else {
 			// Let error bubble up
@@ -55,13 +57,29 @@ AstNode::Ptr Parser::buildStruct() {
 		error::onToken("Expected identifier", tokens[current]);
 		return nullptr;
 	}
+
+	auto struc = std::make_unique<StructAstNode>(name);
+
+	if(getIf(TokenType::Is)) {
+		while(1) {
+			const Token* trait = getIf(TokenType::Identifier);
+			if(!trait) {
+				error::onToken("Expected trait name", tokens[current]);
+				return nullptr;
+			}
+			struc->traits.push_back(trait->value);
+
+			if(!getIf(TokenType::Comma)) {
+				break;
+			}
+		}
+		
+	}
 	
 	if(!getIf(TokenType::LBrace)) {
 		error::onToken("Expected '{'", tokens[current]);
 		return nullptr;
 	}
-
-	auto struc = std::make_unique<StructAstNode>(name);
 
 	while(!getIf(TokenType::RBrace) ) {
 		auto member = buildMember();

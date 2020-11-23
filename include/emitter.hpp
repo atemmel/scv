@@ -14,16 +14,23 @@ public:
 	void visit(const MemberAstNode& node) final;
 
 private:
+	StructAstNode* findStruct(const std::string& str);
+
 	void dig();
 	void rise();
 	void pad();
 	const std::string* findType(const std::string& str);
 
 	std::unordered_map<std::string, std::string> types;
+	std::unordered_map<std::string, std::vector<std::string>> dependencies;
+	std::unordered_map<std::string, bool> emitted;
+	std::vector<std::string> collectedDependencies;
 	std::string output;
 	const RootAstNode& root;
 	const std::string& path;
 	uint32_t depth;
-	bool mappingTypes;
-	bool errorOccured;
+	size_t currentIndex = 0;
+	bool mappingTypes = false;
+	bool mappingDeps = false;
+	bool errorOccured = false;
 };

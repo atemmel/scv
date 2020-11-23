@@ -18,7 +18,21 @@ void AstPrinter::visit(const RootAstNode& node) {
 
 void AstPrinter::visit(const StructAstNode& node) {
 	pad();
-	std::cout << "Struct: " << node.name << '\n';
+	std::cout << "Struct: " << node.name;
+	if(!node.traits.empty()) {
+		std::cout << "\n";
+		pad();
+		std::cout << "traits (\n";
+		dig();
+		for(const auto& tr : node.traits) {
+			pad();
+			std::cout << tr << '\n';
+		}
+		rise();
+		pad();
+		std::cout << ")";
+	}
+	std::cout << '\n';
 	dig();
 	for(auto& child : node.children) {
 		child->accept(*this);

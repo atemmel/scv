@@ -10,6 +10,8 @@ enum class TokenType {
 	Struct,
 	LBrace,
 	RBrace,
+	Comma,
+	Is,
 	N_TokenTypes,
 };
 
@@ -25,4 +27,6 @@ constexpr std::array<std::string_view, static_cast<size_t>(TokenType::N_TokenTyp
 	"struct",
 	"{",
 	"}",
+	",",
+	"is",
 };

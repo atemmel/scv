@@ -28,7 +28,7 @@ std::vector<Token> Lexer::operator()() {
 			int tokenStart = current;
 			uint32_t startColumn = column;
 			uint32_t startRow = row;
-			while(current < end && !std::isspace(peek())) {
+			while(current < end && !std::isspace(peek()) && !std::ispunct(peek())) {
 				next();
 			}
 			token.value.assign(&src[tokenStart], current - tokenStart);

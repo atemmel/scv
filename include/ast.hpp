@@ -19,17 +19,12 @@ struct AstNode {
 	const Token* origin;
 };
 
-struct RootAstNode : public AstNode {
-	using Ptr = std::unique_ptr<RootAstNode>;
-
-	RootAstNode();
-	void accept(AstVisitor& visitor) final;
-};
-
 struct StructAstNode : public AstNode {
 	StructAstNode(const Token* token);
 	void accept(AstVisitor& visitor) final;
 	std::string name;
+
+	std::vector<std::string> traits;
 };
 
 struct MemberAstNode : public AstNode {
@@ -38,6 +33,15 @@ struct MemberAstNode : public AstNode {
 	std::string type;
 	std::string name;
 	const Token* nameToken;
+};
+
+struct RootAstNode : public AstNode {
+	using Ptr = std::unique_ptr<RootAstNode>;
+
+	RootAstNode();
+	void accept(AstVisitor& visitor) final;
+
+	std::vector<StructAstNode*> structs;
 };
 
 class AstVisitor {
