@@ -7,11 +7,20 @@
 
 enum class TokenType {
 	Identifier,
+	Symbol,
 	Struct,
+	Trait,
+	Code,
 	LBrace,
 	RBrace,
+	Less,
+	Greater,
+	Quote,
 	Comma,
+	Dot,
 	Is,
+	At,
+	Requires,
 	N_TokenTypes,
 };
 
@@ -24,9 +33,18 @@ struct Token {
 
 constexpr std::array<std::string_view, static_cast<size_t>(TokenType::N_TokenTypes)> tokenStrings = {
 	"",
+	"",
 	"struct",
+	"trait",
+	"code",
 	"{",
 	"}",
+	"<",
+	">",
+	"\"",
 	",",
+	".",
 	"is",
+	"@",
+	"requires",
 };

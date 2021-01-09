@@ -12,5 +12,17 @@ struct Date {
 	u8 d
 	u8 m
 	u32 y
-	User user
+}
+
+trait trait1 requires <iostream>, "format.hpp" {
+
+	code {
+void printt(const @Type& value) {
+	@ForMemberIn(@Type) {
+		std::cout << @Member << ' ';
+	}
+	std::cout << '\n';
+}
+	}
+
 }

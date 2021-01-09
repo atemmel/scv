@@ -35,6 +35,34 @@ struct MemberAstNode : public AstNode {
 	const Token* nameToken;
 };
 
+struct TraitAstNode : public AstNode {
+	TraitAstNode(const Token* token);
+	void accept(AstVisitor& visitor) final;
+	std::string name;
+	std::vector<std::string> requirements;
+
+};
+
+struct CodeAstNode : public AstNode {
+	CodeAstNode(const Token* token);
+	void accept(AstVisitor& visitor) final;
+};
+
+// Represents "unimportant" which lacks macros
+struct SegmentAstNode : public AstNode {
+	SegmentAstNode(const Token* token);
+	void accept(AstVisitor& visitor) final;
+	std::string contents;
+};
+
+// Starts with an @, is optionally followed by a sequence of args
+// e.g: @Macro1, @Macro2(arg1, arg2)
+struct MacroAstNode : public AstNode {
+	MacroAstNode(const Token* token);
+	void accept(AstVisitor& visitor) final;
+	std::string name;
+};
+
 struct RootAstNode : public AstNode {
 	using Ptr = std::unique_ptr<RootAstNode>;
 
@@ -50,6 +78,7 @@ public:
 	virtual void visit(const RootAstNode& node) = 0;
 	virtual void visit(const StructAstNode& node) = 0;
 	virtual void visit(const MemberAstNode& node) = 0;
+	virtual void visit(const TraitAstNode& node) = 0;
 };
 
 class Parser {
@@ -59,7 +88,14 @@ public:
 private:
 	AstNode::Ptr buildStruct();
 	AstNode::Ptr buildMember();
+	AstNode::Ptr buildTrait();
+	AstNode::Ptr buildCodeBlock();
+
+	std::vector<std::string> buildRequirements();
+	std::string joinTokenValuesUntilToken(TokenType delim);
 	const Token* getIf(TokenType type);
+	const Token* getIfNot(TokenType type);
+	bool eof() const;
 
 	const std::vector<Token>& tokens;
 	size_t current;

@@ -25,34 +25,9 @@ std::vector<Token> Lexer::operator()() {
 			}
 		} else if(std::isalpha(peek())) {
 			// Identifier or keyword
-			int tokenStart = current;
-			uint32_t startColumn = column;
-			uint32_t startRow = row;
-			while(current < end && !std::isspace(peek()) && !std::ispunct(peek())) {
-				next();
-			}
-			token.value.assign(&src[tokenStart], current - tokenStart);
-			auto it = std::find(tokenStrings.cbegin(), tokenStrings.cend(), token.value);
-
-			token.column = startColumn;
-			token.row = startRow;
-
-			if(it != tokenStrings.cend()) {
-				// Keyword
-				token.type = static_cast<TokenType>(std::distance(tokenStrings.cbegin(), it));
-				token.value.clear();
-				tokens.push_back(token);
-			} else {
-				// Identifier
-				token.type = TokenType::Identifier;
-				tokens.push_back(token);
-				token.value.clear();
-			}
+			lexIdentifierOrKeyword(token, tokens);
 		} else if(std::isspace(peek())) {
-			next();
-			while(current < end && std::isspace(src[current])) {
-				next();
-			}
+			ignoreWhitespace();
 		} else {
 			// Symbol or unrecognized token
 			const std::string punct(&src[current], 1);
@@ -63,16 +38,61 @@ std::vector<Token> Lexer::operator()() {
 				token.type = static_cast<TokenType>(std::distance(tokenStrings.cbegin(), it));
 				tokens.push_back(token);
 				next();
+			} else if(std::ispunct(peek()) && peek() != '`') {
+				token.column = column;
+				token.row = row;
+				token.type = TokenType::Symbol;
+				token.value = peek();
+				tokens.push_back(token);
+				token.value.clear();
+				next();
 			} else {
-				std::string buffer;
-				buffer.resize(128);
-				std::snprintf(buffer.data(), buffer.size(), "%d:%d: Unrecognized token '%c'\n", row, column, peek());
-				error::set(buffer);
+				errorOnCurrent();
 				return {};
 			}
 		}
 	}
 	return tokens;
+}
+
+void Lexer::lexIdentifierOrKeyword(Token& token, std::vector<Token>& tokens) {
+	int tokenStart = current;
+	uint32_t startColumn = column;
+	uint32_t startRow = row;
+	while(current < src.size() && !std::isspace(peek()) && !std::ispunct(peek())) {
+		next();
+	}
+	token.value.assign(&src[tokenStart], current - tokenStart);
+	auto it = std::find(tokenStrings.cbegin(), tokenStrings.cend(), token.value);
+
+	token.column = startColumn;
+	token.row = startRow;
+
+	if(it != tokenStrings.cend()) {
+		// Keyword
+		token.type = static_cast<TokenType>(std::distance(tokenStrings.cbegin(), it));
+		token.value.clear();
+		tokens.push_back(token);
+	} else {
+		// Identifier
+		token.type = TokenType::Identifier;
+		tokens.push_back(token);
+		token.value.clear();
+	}
+}
+
+void Lexer::ignoreWhitespace() {
+	next();
+	while(current < src.size() && std::isspace(src[current])) {
+		next();
+	}
+}
+
+void Lexer::errorOnCurrent() {
+	std::string buffer;
+	buffer.resize(128);
+	std::snprintf(buffer.data(), buffer.size(), "%d:%d: Unrecognized token '%c'\n", row, column, peek());
+	error::set(buffer);
 }
 
 char Lexer::peek() {
@@ -83,7 +103,7 @@ void Lexer::next() {
 	++current;
 	++column;
 	if(peek() == '\n') {
-		column = 1;
+		column = 0;
 		++row;
 	}
 }

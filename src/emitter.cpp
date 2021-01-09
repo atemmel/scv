@@ -164,6 +164,10 @@ void Emitter::visit(const MemberAstNode& node) {
 	}
 }
 
+void Emitter::visit(const TraitAstNode& node) {
+	//TODO: this
+}
+
 StructAstNode* Emitter::findStruct(const std::string& str) {
 	for(auto stru : root.structs) {
 		if(stru->name == str) {

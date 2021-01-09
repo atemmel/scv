@@ -45,6 +45,16 @@ void AstPrinter::visit(const MemberAstNode& node) {
 	std::cout << "Member: " << node.name << ", Type: " << node.type << '\n';
 }
 
+void AstPrinter::visit(const TraitAstNode& node) {
+	pad();
+	std::cout << "Trait: " << node.name << '\n';
+	dig();
+	for(auto& req : node.requirements) {
+		std::cout << "Requirement: " << req << '\n';
+	}
+	rise();
+}
+
 void AstPrinter::dig() {
 	++depth;
 }

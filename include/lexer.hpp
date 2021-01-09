@@ -8,6 +8,9 @@ public:
 	Lexer(const std::string& src);
 	std::vector<Token> operator()();
 private:
+	void lexIdentifierOrKeyword(Token& token, std::vector<Token>& tokens);
+	void ignoreWhitespace();
+	void errorOnCurrent();
 	char peek();
 	void next();
 	void jump(size_t n);

@@ -8,6 +8,7 @@ public:
 	void visit(const RootAstNode& node) final;
 	void visit(const StructAstNode& node) final;
 	void visit(const MemberAstNode& node) final;
+	void visit(const TraitAstNode& node) final;
 private:
 	void dig();
 	void rise();
