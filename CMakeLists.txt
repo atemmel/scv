@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(scv)
+project(scv LANGUAGES CXX)
 
 # Set a default build type if none was specified
 set(default_build_type "Release")
@@ -11,6 +11,6 @@ endif()
 file(GLOB_RECURSE sources RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
 add_executable(scv ${sources})
 set_property(TARGET scv PROPERTY CXX_STANDARD 17)
-include_directories(./include)
+include_directories(include)
 
 add_compile_options(-Wall -Wextra -Wpedantic)

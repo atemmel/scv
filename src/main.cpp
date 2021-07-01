@@ -7,7 +7,12 @@
 #include "error.hpp"
 #include "utils.hpp"
 
+#include <iostream>
+
 void pipeline(const std::string_view& sv) {
+	if(global::verboseAllFlag) {
+		std::cout << "Processing " << sv << '\n';
+	}
 	auto src = consume(sv.data());
 	dieIfError();
 
@@ -19,7 +24,7 @@ void pipeline(const std::string_view& sv) {
 		dumpTokens(tokens);
 	}
 
-	Parser parser(tokens);
+	Parser parser(tokens, src);
 	auto root = parser();
 	dieIfError();
 	if(!root) {

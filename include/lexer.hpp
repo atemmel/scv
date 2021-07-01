@@ -19,5 +19,6 @@ private:
 	size_t current = 0;
 	uint32_t column = 0;
 	uint32_t row = 0;
+	uint32_t codeDepth = 0;
 
 };

@@ -38,10 +38,12 @@ void dieIfError() {
 
 std::string getDate() {
 	auto result = std::time(nullptr);
-	auto local = std::localtime(&result);
+	tm local;
+	//auto local = std::localtime(&result);
+	localtime_s(&local, &result);
 	std::string str;
 	str.resize(6 + 2 + 2 + 2 + 2 + 2 + 6);
-	int n = std::strftime(str.data(), str.size(), "%F %T", local);
+	int n = std::strftime(str.data(), str.size(), "%F %T", &local);
 	str.resize(n);
 	return str;
 }

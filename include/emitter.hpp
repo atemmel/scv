@@ -13,6 +13,9 @@ public:
 	void visit(const StructAstNode& node) final;
 	void visit(const MemberAstNode& node) final;
 	void visit(const TraitAstNode& node) final;
+	void visit(const CodeAstNode& node) final;
+	void visit(const SegmentAstNode& node) final;
+	void visit(const MacroAstNode& node) final;
 
 private:
 	StructAstNode* findStruct(const std::string& str);

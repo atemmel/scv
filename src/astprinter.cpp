@@ -50,10 +50,56 @@ void AstPrinter::visit(const TraitAstNode& node) {
 	std::cout << "Trait: " << node.name << '\n';
 	dig();
 	for(auto& req : node.requirements) {
+		pad();
 		std::cout << "Requirement: " << req << '\n';
+	}
+
+	for(auto& child : node.children) {
+		child->accept(*this);
+	}
+
+	rise();
+}
+
+void AstPrinter::visit(const CodeAstNode& node) {
+	pad();
+	std::cout << "Code:\n";
+	dig();
+	for(auto& child : node.children) {
+		child->accept(*this);
 	}
 	rise();
 }
+
+void AstPrinter::visit(const SegmentAstNode& node) {
+	pad();
+	std::cout << "Segment: " << node.segment << '\n';
+}
+
+void AstPrinter::visit(const MacroAstNode& node) {
+	pad();
+	std::cout << "Macro: " << node.name << '\n';
+	if(node.children.size() > 0) {
+		dig();
+		pad();
+		std::cout << "Arguments:\n";
+		dig();
+		for(auto& child : node.children) {
+			child->accept(*this);
+		}
+		rise();
+		rise();
+	}
+
+	if(node.optionalCode) {
+		pad();
+		std::cout << "Optional code:\n";
+		dig();
+		node.optionalCode->accept(*this);
+		rise();
+	}
+}
+
 
 void AstPrinter::dig() {
 	++depth;

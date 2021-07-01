@@ -30,6 +30,7 @@ std::vector<Token> Lexer::operator()() {
 			ignoreWhitespace();
 		} else {
 			// Symbol or unrecognized token
+			token.index = current;
 			const std::string punct(&src[current], 1);
 			auto it = std::find(tokenStrings.cbegin(), tokenStrings.cend(), punct);
 			if(it != tokenStrings.cend()) {
@@ -67,6 +68,7 @@ void Lexer::lexIdentifierOrKeyword(Token& token, std::vector<Token>& tokens) {
 
 	token.column = startColumn;
 	token.row = startRow;
+	token.index = tokenStart;
 
 	if(it != tokenStrings.cend()) {
 		// Keyword

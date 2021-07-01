@@ -2,6 +2,8 @@
 
 #include "error.hpp"
 
+#include <iostream>
+
 AstNode::AstNode(const Token* token) : origin(token) {}
 
 void AstNode::addChild(AstNode::Ptr child) {
@@ -35,25 +37,22 @@ void TraitAstNode::accept(AstVisitor& visitor) {
 CodeAstNode::CodeAstNode(const Token* token) : AstNode(token) {}
 
 void CodeAstNode::accept(AstVisitor& visitor) {
-	//TODO: This
-	//visitor.visit(*this);
+	visitor.visit(*this);
 }
 
 SegmentAstNode::SegmentAstNode(const Token* token) : AstNode(token) {}
 
 void SegmentAstNode::accept(AstVisitor& visitor) {
-	//TODO: This
-	//visitor.visit(*this);
+	visitor.visit(*this);
 }
 
 MacroAstNode::MacroAstNode(const Token* token) : AstNode(token) {}
 
 void MacroAstNode::accept(AstVisitor& visitor) {
-	//TODO: This
-	//visitor.visit(*this);
+	visitor.visit(*this);
 }
 
-Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
+Parser::Parser(const std::vector<Token>& tokens, const std::string& src) : tokens(tokens), src(src) {}
 
 RootAstNode::Ptr Parser::operator()() {
 	auto root = std::make_unique<RootAstNode>();
@@ -183,8 +182,118 @@ AstNode::Ptr Parser::buildTrait() {
 }
 
 AstNode::Ptr Parser::buildCodeBlock() {
-	//TODO: This
+	auto token = getIf(TokenType::Code);
+	if(!token) {
+		return nullptr;
+	}
+
+	if(!getIf(TokenType::LBrace)) {
+		error::onToken("Expected '{'", tokens[current]);
+		return nullptr;
+	}
+
+	auto code = std::make_unique<CodeAstNode>(token);
+
+	size_t currentDepth = 0;
+
+	while(1) {
+		auto segment = buildSegment(currentDepth);
+		if(!segment) {
+			error::onToken("Code block never closed", *token);
+			return nullptr;
+		}
+
+		code->children.push_back(std::move(segment));
+		if(getIf(TokenType::RBrace)) {
+			return code;
+		}
+
+		auto macro = buildMacro();
+		if(macro) {
+			code->children.push_back(std::move(macro));
+		}
+	}
+
+	// unreachable
 	return nullptr;
+}
+
+AstNode::Ptr Parser::buildSegment(size_t &currentDepth) {
+	auto segmentNode = std::make_unique<SegmentAstNode>(&tokens[current]);
+	auto& firstToken = tokens[current];
+	while(!eof()) {
+		const Token& token = tokens[current];
+
+		switch(token.type) {
+			case TokenType::At:
+				goto PARSING_DONE;
+			case TokenType::LBrace:
+				currentDepth++;
+				break;
+			case TokenType::RBrace:
+				if(currentDepth == 0) {	// end of segment
+					goto PARSING_DONE;
+				}
+				currentDepth--;
+				break;
+			default:
+				break;
+		}
+
+		current++;
+	}
+
+	return nullptr;
+
+PARSING_DONE:
+	auto& lastToken = tokens[current];
+	segmentNode->segment = std::string_view(
+			src.c_str() + firstToken.index,
+			lastToken.index - firstToken.index
+		);
+	return segmentNode;
+}
+
+AstNode::Ptr Parser::buildMacro() {
+	if(!getIf(TokenType::At)) {
+		return nullptr;
+	}
+
+	auto macro = std::make_unique<MacroAstNode>(&tokens[current - 1]);
+	auto string = getIf(TokenType::Identifier);
+	if(!string) {
+		error::onToken("Expected macro identifier", tokens[current]);
+		return nullptr;
+	}
+
+	macro->name = string->value;
+	macro->children = std::move(buildMacroArgList());
+	macro->optionalCode = std::move(buildCodeBlock());
+
+	return macro;
+}
+
+std::vector<AstNode::Ptr> Parser::buildMacroArgList() {
+	if(!getIf(TokenType::LParens)) {
+		return {};
+	}
+
+	std::vector<AstNode::Ptr> args;
+	auto arg = buildMacro();
+	while(arg) {
+		args.push_back(std::move(arg));
+		if(!getIf(TokenType::Comma)) {
+			break;
+		}
+		arg = buildMacro();
+	}
+
+	if(!getIf(TokenType::RParens)) {
+		error::onToken("Expected closing paranthesis ')'", tokens[current]);
+		return {};
+	}
+
+	return args;
 }
 
 std::vector<std::string> Parser::buildRequirements() {
@@ -236,7 +345,11 @@ DONE:
 std::string Parser::joinTokenValuesUntilToken(TokenType delim) {
 	std::string join;
 	for(auto token = getIfNot(delim); token; token = getIfNot(delim)) {
-		join += token->value;
+		if(!token->value.empty()) {
+			join += token->value;
+		} else {
+			join += tokenStrings[static_cast<size_t>(token->type)];
+		}
 	}
 	return join;
 }

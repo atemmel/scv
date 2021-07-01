@@ -52,7 +52,7 @@ struct CodeAstNode : public AstNode {
 struct SegmentAstNode : public AstNode {
 	SegmentAstNode(const Token* token);
 	void accept(AstVisitor& visitor) final;
-	std::string contents;
+	std::string_view segment;
 };
 
 // Starts with an @, is optionally followed by a sequence of args
@@ -60,6 +60,7 @@ struct SegmentAstNode : public AstNode {
 struct MacroAstNode : public AstNode {
 	MacroAstNode(const Token* token);
 	void accept(AstVisitor& visitor) final;
+	AstNode::Ptr optionalCode;
 	std::string name;
 };
 
@@ -79,17 +80,23 @@ public:
 	virtual void visit(const StructAstNode& node) = 0;
 	virtual void visit(const MemberAstNode& node) = 0;
 	virtual void visit(const TraitAstNode& node) = 0;
+	virtual void visit(const CodeAstNode& node) = 0;
+	virtual void visit(const SegmentAstNode& node) = 0;
+	virtual void visit(const MacroAstNode& node) = 0;
 };
 
 class Parser {
 public:
-	Parser(const std::vector<Token>& tokens);
+	Parser(const std::vector<Token>& tokens, const std::string& src);
 	RootAstNode::Ptr operator()();
 private:
 	AstNode::Ptr buildStruct();
 	AstNode::Ptr buildMember();
 	AstNode::Ptr buildTrait();
 	AstNode::Ptr buildCodeBlock();
+	AstNode::Ptr buildSegment(size_t &currentDepth);
+	AstNode::Ptr buildMacro();
+	std::vector<AstNode::Ptr> buildMacroArgList();
 
 	std::vector<std::string> buildRequirements();
 	std::string joinTokenValuesUntilToken(TokenType delim);
@@ -98,6 +105,7 @@ private:
 	bool eof() const;
 
 	const std::vector<Token>& tokens;
+	const std::string& src;
 	size_t current;
 	size_t last;
 };

@@ -11,13 +11,14 @@ enum class TokenType {
 	Struct,
 	Trait,
 	Code,
+	LParens,
+	RParens,
 	LBrace,
 	RBrace,
 	Less,
 	Greater,
 	Quote,
 	Comma,
-	Dot,
 	Is,
 	At,
 	Requires,
@@ -25,10 +26,13 @@ enum class TokenType {
 };
 
 struct Token {
+	std::string_view str() const;
+
 	std::string value;
 	TokenType type;
 	uint32_t column;
 	uint32_t row;
+	size_t index;
 };
 
 constexpr std::array<std::string_view, static_cast<size_t>(TokenType::N_TokenTypes)> tokenStrings = {
@@ -37,13 +41,14 @@ constexpr std::array<std::string_view, static_cast<size_t>(TokenType::N_TokenTyp
 	"struct",
 	"trait",
 	"code",
+	"(",
+	")",
 	"{",
 	"}",
 	"<",
 	">",
 	"\"",
 	",",
-	".",
 	"is",
 	"@",
 	"requires",

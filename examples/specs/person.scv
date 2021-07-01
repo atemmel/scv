@@ -18,7 +18,7 @@ trait trait1 requires <iostream>, "format.hpp" {
 
 	code {
 void printt(const @Type& value) {
-	@ForMemberIn(@Type) {
+	@ForMemberIn(@Type) code {
 		std::cout << @Member << ' ';
 	}
 	std::cout << '\n';
