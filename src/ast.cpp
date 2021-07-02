@@ -204,10 +204,21 @@ AstNode::Ptr Parser::buildCodeBlock() {
 			return nullptr;
 		}
 
-		code->children.push_back(std::move(segment));
 		if(getIf(TokenType::RBrace)) {
+			auto asSegment = static_cast<SegmentAstNode*>(segment.get());
+			auto view = asSegment->segment;
+			auto firstNonSpaceOrNewline = [](const char c) {
+				return !std::isspace(c) || c == '\n';
+			};
+			auto rtrim = std::find_if(view.rbegin(), view.rend(), firstNonSpaceOrNewline);
+			asSegment->segment.remove_suffix(std::distance(view.rbegin(), rtrim));
+			view = asSegment->segment;
+			auto ltrim = std::find_if(view.begin(), view.end(), firstNonSpaceOrNewline);
+			asSegment->segment.remove_prefix(std::distance(view.begin(), ltrim));
+			code->children.push_back(std::move(segment));
 			return code;
 		}
+		code->children.push_back(std::move(segment));
 
 		auto macro = buildMacro();
 		if(macro) {

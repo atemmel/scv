@@ -79,16 +79,6 @@ bool Emitter::operator()() {
 	}
 
 	output.append("\n");
-	/*
-	for(auto& trait : traits) {
-		if(usedTraits[trait.first]) {
-			for(auto& req : trait.second->requirements) {
-				output.append(req);
-				output.append("\n");
-			}
-		}
-	}
-	*/
 
 	// Write types
 	state = WritingTypes;
@@ -99,6 +89,9 @@ bool Emitter::operator()() {
 	}
 
 	// Write traits
+	for(auto ptr : root.structs) {
+		emitted[ptr->name] = false;
+	}
 	state = WritingTraits;
 	outputResult = true;
 	visit(root);
@@ -192,6 +185,18 @@ void Emitter::visit(const StructAstNode& node) {
 			emitted[node.name] = true;
 			break;
 		case WritingTraits:
+			if(emitted[node.name]) {
+				return;
+			}
+			emitted[node.name] = true;
+			auto& deps = dependencies[node.name];
+			for(auto& dep : deps) {
+				if(!emitted[dep]) {
+					auto stru = findStruct(dep);
+					visit(*stru);
+				}
+			}
+
 			activeStruct = &node;
 			for(auto& name : node.traits) {
 				trait = findTrait(name);
@@ -256,6 +261,8 @@ void Emitter::visit(const CodeAstNode& node) {
 
 	if(!outputResult) {
 		collected = sum;
+	} else {
+		output.append("\n");
 	}
 }
 
