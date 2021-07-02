@@ -1,5 +1,5 @@
 // User type
-struct User is trait1, trait2 {
+struct User is dummy {
 	int age
 	string username
 	string desc
@@ -8,21 +8,25 @@ struct User is trait1, trait2 {
 }
 
 // Date type
-struct Date {
+struct Date is printable, dummy {
 	u8 d
 	u8 m
 	u32 y
 }
 
-trait trait1 requires <iostream>, "format.hpp" {
+trait printable requires <iostream>, "stdio.h" {
 
 	code {
 void printt(const @Type& value) {
 	@ForMemberIn(@Type) code {
-		std::cout << @Member << ' ';
+		std::cout << value.@Member << ' ';
 	}
 	std::cout << '\n';
 }
 	}
+
+}
+
+trait dummy {
 
 }

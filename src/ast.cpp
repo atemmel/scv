@@ -65,6 +65,8 @@ RootAstNode::Ptr Parser::operator()() {
 			root->structs.push_back(ptr);
 			root->addChild(std::move(child));
 		} else if(auto child = buildTrait(); child) {
+			TraitAstNode* trait = static_cast<TraitAstNode*>(child.get());
+			root->traits.push_back(trait);
 			root->addChild(std::move(child));
 		} else {
 			// Let error bubble up
@@ -166,7 +168,6 @@ AstNode::Ptr Parser::buildTrait() {
 		return nullptr;
 	}
 
-	// code block...
 	auto code = buildCodeBlock();
 	while(code) {
 		trait->addChild(std::move(code));

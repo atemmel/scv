@@ -40,7 +40,6 @@ struct TraitAstNode : public AstNode {
 	void accept(AstVisitor& visitor) final;
 	std::string name;
 	std::vector<std::string> requirements;
-
 };
 
 struct CodeAstNode : public AstNode {
@@ -71,6 +70,7 @@ struct RootAstNode : public AstNode {
 	void accept(AstVisitor& visitor) final;
 
 	std::vector<StructAstNode*> structs;
+	std::vector<TraitAstNode*> traits;
 };
 
 class AstVisitor {

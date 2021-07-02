@@ -13,4 +13,4 @@ add_executable(scv ${sources})
 set_property(TARGET scv PROPERTY CXX_STANDARD 17)
 include_directories(include)
 
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -Wpedantic -Wpadding -Werror)
