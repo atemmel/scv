@@ -60,7 +60,7 @@ void Lexer::lexIdentifierOrKeyword(Token& token, std::vector<Token>& tokens) {
 	int tokenStart = current;
 	uint32_t startColumn = column;
 	uint32_t startRow = row;
-	while(current < src.size() && !std::isspace(peek()) && !std::ispunct(peek())) {
+	while(current < src.size() && (!std::isspace(peek()) && !std::ispunct(peek()) || peek() == '_')) {
 		next();
 	}
 	token.value.assign(&src[tokenStart], current - tokenStart);

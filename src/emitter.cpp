@@ -59,6 +59,13 @@ bool Emitter::operator()() {
 		return false;
 	}
 
+	state = MappingMembers;
+	visit(root);
+
+	if(errorOccured) {
+		return false;
+	}
+
 	// Map traits
 	state = MappingTraits;
 	traits.reserve(root.traits.size());
@@ -143,6 +150,11 @@ void Emitter::visit(const StructAstNode& node) {
 			}
 			dependencies.insert({node.name, std::move(collectedDependencies)});
 			break;
+		case MappingMembers:
+			for(auto& child : node.children) {
+				child->accept(*this);
+			}
+			break;
 		case MappingTraits:
 			for(auto& name : node.traits) {
 				trait = findTrait(name);
@@ -218,6 +230,14 @@ void Emitter::visit(const MemberAstNode& node) {
 			}
 
 			return;
+			break;
+		case MappingMembers:
+			type = findType(node.type);
+			if(type == nullptr) {
+				error::onToken("Type '" + node.type + "' not defined", *node.origin);
+				errorOccured = true;
+				return;
+			}
 			break;
 		case WritingTypes:
 			type = findType(node.type);

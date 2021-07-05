@@ -1,0 +1,20 @@
+struct Message is Printable {
+	int type
+	string contents
+	string destination
+	u64 validFrom
+	u64 validUntil
+	float scale
+	bool sentFromAdmin
+}
+
+trait Printable requires <iostream> {
+code {
+std::ostream& operator<<(std::ostream& os, const @Type& value) {
+	@ForMemberIn(@Type) code {
+		os << value.@Member << ' ';
+	}
+	return os;
+}
+}
+}

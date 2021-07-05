@@ -70,7 +70,9 @@ RootAstNode::Ptr Parser::operator()() {
 			root->addChild(std::move(child));
 		} else {
 			// Let error bubble up
-			error::onToken("Unrecognized token", tokens[current]);
+			if(error::empty()) {
+				error::onToken("Unexpected token", eof() ? tokens.back() : tokens[current]);
+			}
 			return nullptr;
 		}
 	}
@@ -175,7 +177,7 @@ AstNode::Ptr Parser::buildTrait() {
 	}
 
 	if(!getIf(TokenType::RBrace)) {
-		error::onToken("Expected '}'", tokens[current]);
+		error::onToken("Expected '}'", eof() ? tokens.back() : tokens[current]);
 		return nullptr;
 	}
 

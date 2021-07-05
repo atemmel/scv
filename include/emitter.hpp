@@ -50,6 +50,7 @@ private:
 	enum {
 		MappingTypes,
 		MappingDeps,
+		MappingMembers,
 		MappingTraits,
 		WritingTypes,
 		WritingTraits,
