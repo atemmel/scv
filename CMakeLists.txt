@@ -13,4 +13,15 @@ add_executable(scv ${sources})
 set_property(TARGET scv PROPERTY CXX_STANDARD 17)
 include_directories(include)
 
+if(CMAKE_BUILD_TYPE EQUAL "Debug") 
+	# AddressSanitizer flags
+	set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+	set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+	add_compile_options(-fsanitize=address)
+endif()
+
+message(STATUS "!!!!!!!!!!!!!!!!!!!!!!!!!")
+message(STATUS "Running ${CMAKE_BUILD_TYPE} build")
+message(STATUS "!!!!!!!!!!!!!!!!!!!!!!!!!")
+
 add_compile_options(-Wall -Wextra -Wpedantic -Wpadding -Werror)
