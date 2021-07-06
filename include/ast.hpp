@@ -69,6 +69,8 @@ struct RootAstNode : public AstNode {
 	RootAstNode();
 	void accept(AstVisitor& visitor) final;
 
+	void join(RootAstNode::Ptr& other);
+
 	std::vector<StructAstNode*> structs;
 	std::vector<TraitAstNode*> traits;
 };
@@ -96,6 +98,7 @@ private:
 	AstNode::Ptr buildCodeBlock();
 	AstNode::Ptr buildSegment(size_t &currentDepth);
 	AstNode::Ptr buildMacro();
+	RootAstNode::Ptr buildRequire();
 	std::vector<AstNode::Ptr> buildMacroArgList();
 
 	std::vector<std::string> buildRequirements();

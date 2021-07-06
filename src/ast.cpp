@@ -16,6 +16,12 @@ void RootAstNode::accept(AstVisitor& visitor) {
 	visitor.visit(*this);
 }
 
+void RootAstNode::join(RootAstNode::Ptr& other) {
+	structs.insert(structs.end(), other->structs.begin(), other->structs.end());
+	traits.insert(traits.end(), other->traits.begin(), other->traits.end());
+	addChild(std::move(other));
+}
+
 StructAstNode::StructAstNode(const Token* token) : name(token->value), AstNode(token) {}
 
 void StructAstNode::accept(AstVisitor& visitor) {
@@ -68,6 +74,7 @@ RootAstNode::Ptr Parser::operator()() {
 			TraitAstNode* trait = static_cast<TraitAstNode*>(child.get());
 			root->traits.push_back(trait);
 			root->addChild(std::move(child));
+		//} else if(auto otherRoot = buildRequire(); otherRoot) {
 		} else {
 			// Let error bubble up
 			if(error::empty()) {
@@ -285,6 +292,21 @@ AstNode::Ptr Parser::buildMacro() {
 	macro->optionalCode = std::move(buildCodeBlock());
 
 	return macro;
+}
+
+RootAstNode::Ptr Parser::buildRequire() {
+	if(!getIf(TokenType::Requires)) {
+		return nullptr;
+	}
+
+	auto string = getIf(TokenType::Identifier);
+	if(!string) {
+		error::onToken("Expected file identifier", tokens[current]);
+	}
+	auto otherRoot = std::make_unique<RootAstNode>();
+	otherRoot->origin = string;
+
+	return otherRoot;
 }
 
 std::vector<AstNode::Ptr> Parser::buildMacroArgList() {
