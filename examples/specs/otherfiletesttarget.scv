@@ -1,0 +1,7 @@
+requires otherfiletest
+
+struct Info is Loggable {
+	string message
+	u64 timestamp
+	u8 severity
+}

@@ -1,0 +1,10 @@
+trait Loggable requires <iostream> {
+code {
+void Log(const @Type& value) {
+	@ForMemberIn(@Type) code {
+		std::cerr << value.@Member << ' ';
+	}
+	std::cerr << '\n';
+}
+}
+}

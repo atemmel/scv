@@ -1,6 +1,7 @@
 #include "ast.hpp"
 
 #include "error.hpp"
+#include "pipeline.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -59,7 +60,7 @@ void MacroAstNode::accept(AstVisitor& visitor) {
 	visitor.visit(*this);
 }
 
-Parser::Parser(const std::vector<Token>& tokens, const std::string& src) : tokens(tokens), src(src) {}
+Parser::Parser(const std::vector<Token>& tokens, const std::string& src, const std::string_view originFile) : tokens(tokens), src(src), originFile(originFile) {}
 
 RootAstNode::Ptr Parser::operator()() {
 	auto root = std::make_unique<RootAstNode>();
@@ -75,7 +76,8 @@ RootAstNode::Ptr Parser::operator()() {
 			TraitAstNode* trait = static_cast<TraitAstNode*>(child.get());
 			root->traits.push_back(trait);
 			root->addChild(std::move(child));
-		//} else if(auto otherRoot = buildRequire(); otherRoot) {
+		} else if(buildRequire(root)) {
+			continue;
 		} else {
 			// Let error bubble up
 			if(error::empty()) {
@@ -295,19 +297,33 @@ AstNode::Ptr Parser::buildMacro() {
 	return macro;
 }
 
-RootAstNode::Ptr Parser::buildRequire() {
+bool Parser::buildRequire(RootAstNode::Ptr &root) {
 	if(!getIf(TokenType::Requires)) {
-		return nullptr;
+		return false;
 	}
 
 	auto string = getIf(TokenType::Identifier);
 	if(!string) {
 		error::onToken("Expected file identifier", tokens[current]);
+		return false;
 	}
-	auto otherRoot = std::make_unique<RootAstNode>();
-	otherRoot->origin = string;
 
-	return otherRoot;
+	auto dir = originFile;
+	auto index = dir.find_last_of('/') + 1;
+	if(index != dir.npos) {
+		dir.remove_suffix(dir.size() - index);
+	}
+
+	std::string fileName = std::string(dir) + string->value + ".scv";
+	if(Pipeline::hasProcessed(fileName)) {
+		return true;
+	}
+	auto& src = Pipeline::readFile(fileName);
+	auto otherRoot = Pipeline::buildRootFromSrc(src, fileName);
+	otherRoot->origin = string;
+	root->join(otherRoot);
+
+	return true;
 }
 
 std::vector<AstNode::Ptr> Parser::buildMacroArgList() {

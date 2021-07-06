@@ -17,7 +17,7 @@ void Pipeline::full(const std::vector<std::string_view>& inputs) {
 	std::string_view outputFile;
 
 	for(const auto sv : inputs) {
-		if(previouslyProcessed.count(sv) > 0) {
+		if(hasProcessed(sv)) {
 			continue;
 		}
 
@@ -25,7 +25,7 @@ void Pipeline::full(const std::vector<std::string_view>& inputs) {
 			std::cout << "Processing " << sv << '\n';
 		}
 		auto& src = Pipeline::readFile(sv);
-		auto root = Pipeline::buildRootFromSrc(src);
+		auto root = Pipeline::buildRootFromSrc(src, sv);
 		if(!root) {
 			return;
 		}
@@ -34,9 +34,8 @@ void Pipeline::full(const std::vector<std::string_view>& inputs) {
 			firstRoot = std::move(root);
 			outputFile = sv;
 		} else {
-			//firstRoot->join(root);
+			firstRoot->join(root);
 		}
-		break;
 	}
 
 	if(global::verboseAllFlag || global::verboseAstFlag) {
@@ -53,12 +52,16 @@ void Pipeline::full(const std::vector<std::string_view>& inputs) {
 	dieIfError();
 }
 
-RootAstNode::Ptr Pipeline::buildRootFromSrc(const std::string& src) {
+bool Pipeline::hasProcessed(const std::string_view sv) {
+	return previouslyProcessed.count(sv) > 0;
+}
+
+RootAstNode::Ptr Pipeline::buildRootFromSrc(const std::string& src, const std::string_view origin) {
 	Lexer lexer(src);
 	auto tokens = lexer();
 	dieIfError();
 
-	Parser parser(tokens, src);
+	Parser parser(tokens, src, origin);
 	auto root = parser();
 	dieIfError();
 

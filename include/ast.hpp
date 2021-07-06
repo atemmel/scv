@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 class AstVisitor;
@@ -89,7 +90,7 @@ public:
 
 class Parser {
 public:
-	Parser(const std::vector<Token>& tokens, const std::string& src);
+	Parser(const std::vector<Token>& tokens, const std::string& src, const std::string_view originFile);
 	RootAstNode::Ptr operator()();
 private:
 	AstNode::Ptr buildStruct();
@@ -98,7 +99,7 @@ private:
 	AstNode::Ptr buildCodeBlock();
 	AstNode::Ptr buildSegment(size_t &currentDepth);
 	AstNode::Ptr buildMacro();
-	RootAstNode::Ptr buildRequire();
+	bool buildRequire(RootAstNode::Ptr& root);
 	std::vector<AstNode::Ptr> buildMacroArgList();
 
 	std::vector<std::string> buildRequirements();
@@ -109,6 +110,7 @@ private:
 
 	const std::vector<Token>& tokens;
 	const std::string& src;
+	const std::string_view originFile;
 	size_t current;
 	size_t last;
 };

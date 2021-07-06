@@ -17,10 +17,11 @@ public:
 
 	static void full(const std::vector<std::string_view>& sv);
 
-	static RootAstNode::Ptr buildRootFromSrc(const std::string &src);
-private:
-	const static std::string& readFile(const std::string_view sv);
+	static bool hasProcessed(const std::string_view sv);
 
+	static RootAstNode::Ptr buildRootFromSrc(const std::string &src, const std::string_view origin);
+	const static std::string& readFile(const std::string_view sv);
+private:
 	static std::set<std::string_view> previouslyProcessed;
 	static std::list<std::string> storedSrcs;
 };
