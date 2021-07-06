@@ -2,6 +2,7 @@
 
 #include "error.hpp"
 
+#include <algorithm>
 #include <iostream>
 
 AstNode::AstNode(const Token* token) : origin(token) {}

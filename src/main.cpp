@@ -6,6 +6,7 @@
 #include "emitter.hpp"
 #include "error.hpp"
 #include "utils.hpp"
+#include "pipeline.hpp"
 
 #include <iostream>
 
@@ -54,9 +55,13 @@ int main(int argc, char** argv) {
 
 	auto input = argParser.unwind();
 
+	/*
 	for(const auto sv : input) {
 		pipeline(sv);
 	}
+	*/
+
+	Pipeline::full(input);
 
 	return EXIT_SUCCESS;
 }

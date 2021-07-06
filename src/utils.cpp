@@ -38,12 +38,20 @@ void dieIfError() {
 
 std::string getDate() {
 	auto result = std::time(nullptr);
+
+#ifdef WIN32
 	tm local;
-	//auto local = std::localtime(&result);
 	localtime_s(&local, &result);
+#else
+	auto local = std::localtime(&result);
+#endif
 	std::string str;
 	str.resize(6 + 2 + 2 + 2 + 2 + 2 + 6);
+#ifdef WIN32
 	int n = std::strftime(str.data(), str.size(), "%F %T", &local);
+#else
+	int n = std::strftime(str.data(), str.size(), "%F %T", local);
+#endif
 	str.resize(n);
 	return str;
 }
